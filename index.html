@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>TrustPass</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#eef1f5;--card:#fff;--ink:#1b2433;--mute:#5d6b80;--line:#cfd6e1;--acc:#0f766e;--accfg:#fff;--warn:#b45309;--bad:#b42318;--ok:#15803d;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1520;--card:#18212f;--ink:#e8edf5;--mute:#98a6bb;--line:#2c3a50;--acc:#2dd4bf;--accfg:#06201c;--warn:#fbbf24;--bad:#f87171;--ok:#4ade80;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0f1520;--card:#18212f;--ink:#e8edf5;--mute:#98a6bb;--line:#2c3a50;--acc:#2dd4bf;--accfg:#06201c;--warn:#fbbf24;--bad:#f87171;--ok:#4ade80;color-scheme:dark}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 15px/1.5 'Bricolage Grotesque',system-ui,sans-serif}
+header{padding:20px 16px 0;max-width:1000px;margin:auto}
+h1{margin:0;font-size:30px;font-weight:800;letter-spacing:-.02em}
+.sub{color:var(--mute);margin:2px 0 14px;max-width:62ch}
+.roles,.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer;border:1px solid var(--line);background:var(--card);border-radius:8px;padding:7px 13px}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+button.p{background:var(--acc);color:var(--accfg);border-color:var(--acc);font-weight:600}
+button.d{color:var(--bad)}button:disabled{opacity:.45;cursor:not-allowed}
+main{max-width:1000px;margin:auto;padding:8px 16px 60px}
+.grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
+.tk{position:relative;display:grid;grid-template-columns:78px 1fr;background:var(--card);border:1px solid var(--line);border-radius:14px}
+.tk .st{border-right:2px dashed var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:800;line-height:1.1;padding:10px 4px;text-align:center}
+.tk .st b{font-size:26px}.tk .st span{font-size:12px;color:var(--mute);font-weight:400}
+.tk:before,.tk:after{content:"";position:absolute;left:68px;width:20px;height:20px;border-radius:50%;background:var(--bg);border:1px solid var(--line)}
+.tk:before{top:-11px}.tk:after{bottom:-11px}
+.tk .bd{padding:12px 14px}.tk h3{margin:0;font-size:17px}
+.m{color:var(--mute);font-size:13px}.pr{font-size:20px;font-weight:800}.was{text-decoration:line-through;color:var(--mute);font-size:13px;margin-left:6px}
+.pill{display:inline-block;border:1px solid var(--line);border-radius:99px;padding:1px 9px;font-size:12px;margin:2px 4px 2px 0}
+.pill.g{color:var(--ok);border-color:var(--ok)}.pill.w{color:var(--warn);border-color:var(--warn)}.pill.r{color:var(--bad);border-color:var(--bad)}
+.box{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin:12px 0}
+.box h2{margin:0 0 8px;font-size:18px}
+form{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}
+label{display:grid;gap:3px;font-size:13px;color:var(--mute)}
+input,select{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px}
+.err{color:var(--bad);font-weight:600}.okm{color:var(--ok);font-weight:600}
+.flow{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+table{width:100%;border-collapse:collapse;font-size:13px}td,th{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line)}
+.scroll{overflow-x:auto}.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px}
+@media(prefers-reduced-motion:no-preference){.tk{transition:transform .15s}.tk:hover{transform:translateY(-2px)}}
+</style></head><body>
+<header><h1>TrustPass</h1>
+<p class="sub">Request-based ticket resale with approval, reservation, sandbox payment and mock-provider transfer. Everything below is a simulated prototype: no real BookMyShow integration, no real money.</p>
+<div class="roles" id="roles"></div><div class="tabs" id="tabs"></div></header>
+<main id="app"></main>
+<script>
+const R=n=>'₹'+(n/100).toLocaleString('en-IN');
+const h=s=>{let x=2166136261;for(const c of s){x^=c.charCodeAt(0);x=Math.imul(x,16777619)}return(x>>>0).toString(16)};
+const seed=[['Karthik','Midnight Express','PVR Kukatpally','25 Nov','6:30 PM','Gold',2,50000,35000,'BK-1001'],
+['Meera','The Last Raga','Prasads IMAX','26 Nov','9:15 PM','Recliner',1,75000,60000,'BK-2002'],
+['Karthik','Midnight Express','AMB Gachibowli','25 Nov','9:00 PM','Prime',2,40000,30000,'BK-1003'],
+['Karthik','Monsoon Road','Cinepolis Manjeera','27 Nov','4:00 PM','Gold',3,30000,22000,'BK-1004'],
+['Karthik','Monsoon Road','Cinepolis Manjeera','27 Nov','7:00 PM','Gold',4,30000,24000,'BK-1005']];
+const S={role:'buyer',tab:'browse',q:'',msg:'',ok:{},rec:{},n:20,L:[],Q:[],T:[],A:[],risk:{Karthik:{dup:1,fail:1},Asha:{dup:0,fail:0},Meera:{dup:0,fail:0}}};
+seed.forEach((s,i)=>S.L.push({id:i+1,seller:s[0],movie:s[1],venue:s[2],date:s[3],time:s[4],cat:s[5],qty:s[6],orig:s[7],price:s[8],fp:h('BMS|'+s[9]),st:'active'}));
+const me={buyer:'Ravi',seller:'Asha',admin:'Admin'};
+const log=(a,m)=>S.A.unshift({t:new Date().toLocaleTimeString(),a,m});
+log('System','Platform started (simulated provider, sandbox payments)');
+const NAV={buyer:[['browse','Browse tickets'],['mine','My requests & payments']],seller:[['sell','Create listing'],['reqs','Requests & transfers']],admin:[['fraud','Fraud alerts'],['tx','Transactions'],['audit','Audit log']]};
+const score=u=>{const r=S.risk[u]||{dup:0,fail:0},n=S.L.filter(l=>l.seller==u).length;return r.dup*40+r.fail*20+(n>3?20:0)};
+const lvl=s=>s>=60?['High','r']:s>=30?['Medium','w']:['Low','g'];
+const L=id=>S.L.find(l=>l.id==id);
+function go(r,t){S.role=r;S.tab=t||NAV[r][0][0];S.msg='';draw()}
+function setTab(t){S.tab=t;S.msg='';draw()}
+function create(e){e.preventDefault();const f=Object.fromEntries(new FormData(e.target));
+ const orig=Math.round(+f.orig*100),price=Math.round(+f.price*100),max=Math.floor(orig*80/100);
+ if(price>max){S.msg=['err','Price '+R(price)+' is above the 80% cap of '+R(max)+'. Lower the resale price.'];log(me.seller,'Listing rejected: price cap');return draw()}
+ const fp=h('BMS|'+f.ref.trim());
+ if(S.L.some(l=>l.fp==fp&&!['cancelled','expired'].includes(l.st))){S.risk.Asha.dup++;S.msg=['err','This booking reference is already listed. Duplicate listings are blocked and flagged for review.'];log(me.seller,'Duplicate listing blocked (fingerprint match)');return draw()}
+ S.L.push({id:++S.n,seller:me.seller,movie:f.movie,venue:f.venue,date:f.date,time:f.time,cat:f.cat,qty:+f.qty,orig,price,fp,st:'active'});
+ S.msg=['okm','Listing is live (price check and duplicate check passed).'];log(me.seller,'Listing created: '+f.movie);draw()}
+function request(id){const l=L(id);if(S.Q.some(q=>q.lid==id&&q.buyer==me.buyer&&q.st=='pending'))return;
+ S.Q.push({id:++S.n,lid:id,buyer:me.buyer,seller:l.seller,qty:l.qty,st:'pending'});log(me.buyer,'Purchase request sent for listing #'+id);draw()}
+function accept(rid){const q=S.Q.find(x=>x.id==rid),l=L(q.lid);
+ if(l.st!='active'){S.msg=['err','Listing is no longer available.'];return draw()}
+ l.st='reserved';q.st='accepted';S.Q.filter(x=>x.lid==q.lid&&x.id!=rid&&x.st=='pending').forEach(x=>x.st='closed');
+ S.T.push({id:++S.n,lid:l.id,buyer:q.buyer,seller:q.seller,amt:l.price*q.qty,pay:'created',tr:'not_started',set:'none',exp:Date.now()+120000,end:0});
+ log(q.seller,'Request #'+rid+' accepted; listing reserved atomically (other requests closed)');draw()}
+function reject(rid){S.Q.find(x=>x.id==rid).st='rejected';log(me.seller,'Request #'+rid+' rejected');draw()}
+function pay(tid){const t=S.T.find(x=>x.id==tid);if(!(S.rec[tid]||'').trim()){S.msg=['err','Enter the recipient name for the transfer first.'];return draw()}
+ if(Date.now()>t.exp)return expire(tid);t.pay='captured';t.tr='awaiting_seller';t.set='pending';
+ log('Gateway','payment.captured webhook accepted (signature verified, sandbox) for tx #'+tid);draw()}
+function expire(tid){const t=S.T.find(x=>x.id==tid);if(t.pay!='created')return;t.pay='expired';t.tr='cancelled';L(t.lid).st='active';
+ log('System','Reservation expired for tx #'+tid+'; no payment, listing released');draw()}
+function initiate(tid){const t=S.T.find(x=>x.id==tid);t.tr='awaiting_buyer';log(t.seller,'Official transfer initiated in provider app (mock) for tx #'+tid);draw()}
+function bAccept(tid){const t=S.T.find(x=>x.id==tid);t.tr='confirmed';t.pay='settled';t.set='released';t.end=1;L(t.lid).st='sold';
+ log('MockProvider','Transfer confirmed for tx #'+tid+'; settlement released; ticket fingerprint blocked from relisting');draw()}
+function fail(tid){const t=S.T.find(x=>x.id==tid);t.tr='failed';t.pay='refunded';t.set='blocked';t.end=1;L(t.lid).st='cancelled';S.risk[t.seller].fail++;
+ log('MockProvider','Transfer failed for tx #'+tid+'; settlement blocked; refund via gateway; seller risk updated');draw()}
+const pl=(t,c)=>`<span class="pill ${c||''}">${t}</span>`;
+function flow(t){const c=x=>['settled','confirmed','released'].includes(x)?'g':['failed','refunded','blocked','expired','cancelled'].includes(x)?'r':'w';
+ return `<div class="flow">${pl('Payment: '+t.pay,c(t.pay))}${pl('Transfer: '+t.tr.replace('_',' '),c(t.tr))}${pl('Settlement: '+t.set,c(t.set))}</div>`}
+function tk(l,btn){const [d,m]=l.date.split(' ');const sc=lvl(score(l.seller));
+ return `<article class="tk"><div class="st"><b>${d}</b><span>${m}</span><span>${l.time}</span></div><div class="bd"><h3>${l.movie}</h3>
+ <div class="m">${l.venue} · ${l.cat} · ${l.qty} seat${l.qty>1?'s':''}</div>
+ <div><span class="pr">${R(l.price)}</span><span class="was">${R(l.orig)}</span> ${pl('save '+R(l.orig-l.price),'g')}</div>
+ <div>${pl('Transfer eligible (mock)','g')}${pl('Seller '+l.seller)}${pl(l.st)}</div>${btn}</div></article>`}
+function view(){const r=S.role,t=S.tab,m=S.msg?`<p class="${S.msg[0]}">${S.msg[1]}</p>`:'';
+ if(r=='buyer'&&t=='browse'){const ls=S.L.filter(l=>l.st=='active'&&(l.movie+l.venue).toLowerCase().includes(S.q.toLowerCase()));
+  return `<div class="box"><label>Search movie or theatre<input id="q" value="${S.q}" oninput="S.q=this.value;draw(1)" placeholder="e.g. Midnight or Kukatpally"></label></div><div class="grid">${ls.map(l=>{
+  const pend=S.Q.some(q=>q.lid==l.id&&q.buyer==me.buyer&&q.st=='pending');
+  return tk(l,`<label style="display:flex;gap:6px;align-items:center;margin-top:6px"><input type="checkbox" ${S.ok[l.id]?'checked':''} onchange="S.ok[${l.id}]=this.checked;draw(1)">I confirm ${l.venue} is the theatre I will visit</label>
+  <div class="row"><button class="p" ${S.ok[l.id]&&!pend?'':'disabled'} onclick="request(${l.id})">${pend?'Request sent':'Request ticket'}</button></div>`)}).join('')||'<p class="m">No active listings match your search.</p>'}</div>`}
+ if(r=='buyer'&&t=='mine'){const rq=S.Q.filter(q=>q.buyer==me.buyer),tx=S.T.filter(x=>x.buyer==me.buyer);
+  return m+`<div class="box"><h2>My requests</h2>${rq.map(q=>`<div>${L(q.lid).movie} at ${L(q.lid).venue}: ${pl(q.st,q.st=='accepted'?'g':'')}</div>`).join('')||'<p class="m">No requests yet. Request a ticket from Browse.</p>'}</div>`+
+  tx.map(x=>{const l=L(x.lid);return `<div class="box"><h2>${l.movie} · ${R(x.amt)}</h2>${flow(x)}
+  ${x.pay=='created'?`<p class="m">Reservation ends in <b class="cd" data-e="${x.exp}" data-t="${x.id}"></b>. Recipient name is stored privately (encrypted in production).</p>
+  <div class="row"><input placeholder="Recipient full name" value="${S.rec[x.id]||''}" oninput="S.rec[${x.id}]=this.value"><button class="p" onclick="pay(${x.id})">Pay (sandbox)</button><button onclick="expire(${x.id})">Simulate expiry</button></div>`:''}
+  ${x.tr=='awaiting_seller'?'<p class="m">Paid. Waiting for the seller to start the official transfer.</p>':''}
+  ${x.tr=='awaiting_buyer'?`<p class="m">The provider sent a transfer invitation. Accept it in the provider app.</p><div class="row"><button class="p" onclick="bAccept(${x.id})">Accept transfer (mock provider)</button><button class="d" onclick="fail(${x.id})">Mock provider: fail transfer</button></div>`:''}
+  ${x.tr=='confirmed'?'<p class="okm">Provider confirmed the transfer. Settlement released to seller.</p>':''}</div>`}).join('')}
+ if(r=='seller'&&t=='sell'){return m+`<div class="box"><h2>Create listing</h2><form onsubmit="create(event)">
+  <label>Movie<input name="movie" required value="Midnight Express"></label><label>Theatre<input name="venue" required value="PVR Kukatpally"></label>
+  <label>Date<input name="date" required value="25 Nov"></label><label>Show time<input name="time" required value="6:30 PM"></label>
+  <label>Seat category<input name="cat" required value="Gold"></label><label>Seats<input name="qty" type="number" min="1" max="6" required value="2"></label>
+  <label>Original price per seat (₹)<input name="orig" type="number" min="1" required value="500"></label><label>Resale price per seat (₹)<input name="price" type="number" min="1" required value="350"></label>
+  <label>Booking reference (kept as a hash)<input name="ref" required placeholder="Try BK-1001 for a duplicate"></label>
+  <div style="align-self:end"><button class="p">Publish listing</button></div></form><p class="m">Maximum resale price is 80% of the original price, enforced on the backend in integer paise.</p></div>
+  <div class="box"><h2>My listings</h2>${S.L.filter(l=>l.seller==me.seller).map(l=>`<div>${l.movie}, ${l.venue}: ${R(l.price)} ${pl(l.st)}</div>`).join('')||'<p class="m">You have not listed any tickets yet.</p>'}</div>`}
+ if(r=='seller'&&t=='reqs'){const rq=S.Q.filter(q=>q.seller==me.seller),tx=S.T.filter(x=>x.seller==me.seller);
+  return m+`<div class="box"><h2>Incoming requests</h2>${rq.map(q=>`<div class="row">${L(q.lid).movie} · ${q.buyer} · ${q.qty} seat(s) ${pl(q.st)}${q.st=='pending'?`<button class="p" onclick="accept(${q.id})">Accept</button><button onclick="reject(${q.id})">Reject</button>`:''}</div>`).join('')||'<p class="m">No requests yet. Switch to Buyer and request one of Asha’s listings.</p>'}</div>`+
+  tx.map(x=>`<div class="box"><h2>${L(x.lid).movie} · ${R(x.amt)}</h2>${flow(x)}${x.tr=='awaiting_seller'?`<p class="m">Payment confirmed. Open the provider app, start the official transfer to the buyer’s recipient details, then mark it here.</p><button class="p" onclick="initiate(${x.id})">I started the transfer</button>`:''}${x.tr=='confirmed'?'<p class="okm">Settlement released.</p>':''}</div>`).join('')}
+ if(r=='admin'&&t=='fraud'){return `<div class="box"><h2>Fraud risk (rule-based, illustrative weights)</h2><div class="scroll"><table><tr><th>Seller</th><th>Listings</th><th>Duplicate attempts</th><th>Failed transfers</th><th>Score</th><th>Level</th></tr>
+  ${Object.keys(S.risk).map(u=>{const s=score(u),v=lvl(s);return `<tr><td>${u}</td><td>${S.L.filter(l=>l.seller==u).length}</td><td>${S.risk[u].dup}</td><td>${S.risk[u].fail}</td><td>${s}</td><td>${pl(v[0],v[1])}</td></tr>`}).join('')}</table></div>
+  <p class="m">Duplicate reference +40, failed transfer +20 each, more than 3 listings +20. High risk pauses listings for admin review; flags are signals, not verdicts.</p></div>`}
+ if(r=='admin'&&t=='tx'){return `<div class="box"><h2>Transactions</h2>${S.T.map(x=>`<div>#${x.id} ${L(x.lid).movie} · ${x.buyer} → ${x.seller} · ${R(x.amt)}${flow(x)}</div>`).join('')||'<p class="m">No transactions yet. Run a request through accept and pay.</p>'}</div>`}
+ return `<div class="box"><h2>Audit log</h2><div class="scroll"><table>${S.A.map(a=>`<tr><td>${a.t}</td><td>${a.a}</td><td>${a.m}</td></tr>`).join('')}</table></div></div>`}
+function draw(keep){const f=document.activeElement&&document.activeElement.id,p=f&&document.activeElement.selectionStart;
+ roles.innerHTML=['buyer','seller','admin'].map(r=>`<button class="${S.role==r?'on':''}" onclick="go('${r}')">${r[0].toUpperCase()+r.slice(1)} (${me[r]})</button>`).join('');
+ tabs.innerHTML=NAV[S.role].map(t=>`<button class="${S.tab==t[0]?'on':''}" onclick="setTab('${t[0]}')">${t[1]}</button>`).join('');
+ app.innerHTML=view();if(f){const e=document.getElementById(f);if(e){e.focus();try{e.setSelectionRange(p,p)}catch(_){}}}tick()}
+function tick(){document.querySelectorAll('.cd').forEach(e=>{const s=Math.max(0,Math.round((+e.dataset.e-Date.now())/1000));e.textContent=Math.floor(s/60)+':'+String(s%60).padStart(2,'0');if(!s)expire(+e.dataset.t)})}
+setInterval(tick,1000);draw();
+</script></body></html>
